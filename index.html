@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Física del Oído | Cuaderno Interactivo</title>
+  <meta
+    name="description"
+    content="Cuaderno interactivo sobre la física del oído, la audición, el efecto Doppler y las ondas de choque."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Kalam:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="intro-screen" id="introScreen" aria-label="Portada del proyecto">
+    <div class="intro-screen-image" aria-hidden="true"></div>
+    <div class="intro-screen-wash" aria-hidden="true"></div>
+    <section class="intro-screen-content">
+      <p class="intro-kicker">Fisica III · Cuaderno interactivo</p>
+      <h1>Fisica del oido y del sonido</h1>
+      <p class="intro-copy">
+        Un cuaderno visual sobre anatomia auditiva, ondas sonoras, coclea,
+        efecto Doppler, ondas de choque y escucha binaural.
+      </p>
+      <div class="intro-authors" aria-label="Autores">
+        <span>Steve David Franco</span>
+        <span>Harold Ordoñez</span>
+      </div>
+      <button class="intro-enter-btn" id="enterSiteBtn" type="button">
+        Entrar al cuaderno
+      </button>
+    </section>
+  </div>
+
+  <div class="desk-lights" aria-hidden="true">
+    <div class="desk-light desk-light-a"></div>
+    <div class="desk-light desk-light-b"></div>
+    <div class="desk-grain"></div>
+  </div>
+
+  <div class="app-shell">
+    <aside class="tab-rail">
+      <div class="brand-card">
+        <p class="brand-kicker">Cuaderno de física aplicada</p>
+        <h1>Oído &amp; Sonido</h1>
+        <p>
+          Una libreta interactiva sobre anatomía auditiva, propagación de ondas,
+          transducción sensorial, efecto Doppler y ondas de choque.
+        </p>
+      </div>
+
+      <nav class="view-nav" aria-label="Secciones principales">
+        <button class="view-btn is-active" data-view-target="home">
+          <span class="view-btn-index">01</span>
+          <span>
+            <strong>Inicio</strong>
+            <small>Mapa del proyecto</small>
+          </span>
+        </button>
+        <button class="view-btn" data-view-target="notebook">
+          <span class="view-btn-index">02</span>
+          <span>
+            <strong>Cuaderno</strong>
+            <small>Hojas y temas</small>
+          </span>
+        </button>
+        <button class="view-btn" data-view-target="labs">
+          <span class="view-btn-index">03</span>
+          <span>
+            <strong>Laboratorios</strong>
+            <small>Animaciones y simulación</small>
+          </span>
+        </button>
+        <button class="view-btn" data-view-target="sources">
+          <span class="view-btn-index">04</span>
+          <span>
+            <strong>Fuentes</strong>
+            <small>PDF base y recursos</small>
+          </span>
+        </button>
+      </nav>
+
+      <div class="sidebar-block">
+        <div class="sidebar-label">Tema visual</div>
+        <div class="theme-row">
+          <button class="theme-dot dot-dark active" data-theme="dark" title="Dark" type="button"></button>
+          <button class="theme-dot dot-light" data-theme="light" title="Light" type="button"></button>
+          <button class="theme-dot dot-forest" data-theme="forest" title="Forest" type="button"></button>
+          <button class="theme-dot dot-sunset" data-theme="sunset" title="Sunset" type="button"></button>
+          <button class="theme-dot dot-ocean" data-theme="ocean" title="Ocean" type="button"></button>
+          <button class="theme-dot dot-neon" data-theme="neon" title="Neon" type="button"></button>
+          <button class="theme-dot dot-aurora" data-theme="aurora" title="Aurora" type="button"></button>
+        </div>
+      </div>
+
+      <a class="paper-link" href="oido.pdf" target="_blank" rel="noreferrer">
+        Abrir PDF original
+      </a>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">Tema educativo reconstruido desde el PDF</p>
+          <h2>Física del oído humano y del sonido</h2>
+        </div>
+        <div class="header-tools">
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            PDF base + ampliación física + chatbot + laboratorios
+          </div>
+          <div class="clock-card">
+            <span id="dateLabel">Cargando fecha</span>
+            <strong id="clockLabel">--:--</strong>
+          </div>
+        </div>
+      </header>
+
+      <section id="view-home" class="view is-active" aria-labelledby="homeTitle">
+        <div class="hero-grid">
+          <article class="hero-paper">
+            <div class="tape tape-left" aria-hidden="true"></div>
+            <div class="tape tape-right" aria-hidden="true"></div>
+            <p class="paper-kicker">Cuaderno principal</p>
+            <h3 id="homeTitle">Cómo una onda de presión termina convertida en percepción</h3>
+            <p class="hero-copy">
+              El PDF original resume la anatomía básica del oído externo, medio e
+              interno. Este cuaderno toma esa base y la extiende hacia la física de las
+              ondas, la mecánica del tímpano, la función de la cóclea, la localización
+              binaural, el efecto Doppler, las ondas de choque y la protección auditiva.
+            </p>
+
+            <div class="fact-strip">
+              <div class="fact-chip">
+                <strong>3 regiones</strong>
+                <span>externo, medio e interno</span>
+              </div>
+              <div class="fact-chip">
+                <strong>20 Hz a 20 kHz</strong>
+                <span>rango auditivo típico</span>
+              </div>
+              <div class="fact-chip">
+                <strong>Doppler + Mach</strong>
+                <span>aplicados al sonido</span>
+              </div>
+            </div>
+
+            <div class="hero-actions">
+              <button class="paper-btn" data-view-target="notebook" data-page-target="0">
+                Abrir cuaderno
+              </button>
+              <button class="paper-btn secondary" data-view-target="labs">
+                Ir al laboratorio
+              </button>
+            </div>
+          </article>
+
+          <aside class="cover-stack">
+            <article class="cover-card">
+              <div class="cover-ribbon">Portada generada para este proyecto</div>
+              <img
+                src="assets/images/portada-oido.svg"
+                alt="Portada ilustrada del cuaderno sobre el oído"
+              >
+            </article>
+            <article class="sticky-summary">
+              <h4>Qué cambia frente al proyecto anterior</h4>
+              <ul>
+                <li>Un solo cuaderno central con hojas reales y pestañas temáticas.</li>
+                <li>Laboratorios integrados en torno al oído y al sonido.</li>
+                <li>Ilustraciones científicas originales creadas para esta carpeta.</li>
+              </ul>
+            </article>
+          </aside>
+        </div>
+
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Recorrido sugerido</p>
+              <h3>Ruta de estudio</h3>
+            </div>
+            <button class="paper-link-btn" data-view-target="notebook" data-page-target="0">
+              Ver todas las hojas
+            </button>
+          </div>
+          <div class="module-grid" id="moduleGrid"></div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Laboratorio visual</p>
+              <h3>Animaciones del proyecto</h3>
+            </div>
+            <button class="paper-link-btn" data-view-target="labs">
+              Abrir laboratorio completo
+            </button>
+          </div>
+          <div class="lab-preview-grid" id="homeLabGrid"></div>
+        </section>
+
+        <section class="section-block media-grid">
+          <article class="media-card video-card">
+            <div class="section-heading compact">
+              <div>
+                <p class="section-kicker">Video guía recomendado</p>
+                <h3>Journey of Sound to the Brain</h3>
+              </div>
+            </div>
+            <div class="video-frame video-poster">
+              <a
+                class="video-poster-link"
+                href="https://www.youtube.com/watch?v=eQEaiZ2j9oc"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Abrir video guia Journey of Sound to the Brain"
+              >
+                <img
+                  src="assets/images/anatomia-oido.svg"
+                  alt="Caratula ilustrada del video guia sobre el oido"
+                >
+                <span class="video-play-badge" aria-hidden="true">▶</span>
+                <span class="video-poster-caption">Abrir video guia</span>
+              </a>
+            </div>
+            <p class="media-copy">
+              Elegido por ser una animación oficial del NIDCD/NIH que sigue paso a
+              paso el viaje del sonido desde el oído externo hasta el cerebro.
+            </p>
+            <a
+              class="paper-link"
+              href="https://www.nidcd.nih.gov/news/multimedia/journey-of-sound-video"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ver fuente oficial del video
+            </a>
+          </article>
+
+          <article class="media-card source-card">
+            <div class="section-heading compact">
+              <div>
+                <p class="section-kicker">Fuente base usada en esta carpeta</p>
+                <h3>Resumen del PDF del oído</h3>
+              </div>
+            </div>
+            <p class="media-copy">
+              El PDF base aporta la división del oído en tres regiones, los huesecillos,
+              el caracol o cóclea y la idea del recorrido vibratorio hasta el nervio
+              coclear. Todo eso quedó incorporado y ampliado dentro del cuaderno.
+            </p>
+            <div class="thumb-strip">
+              <img src="pdf_assets/page_01_img_01.jpg" alt="Página 1 del PDF base">
+              <img src="pdf_assets/page_02_img_01.jpg" alt="Página 2 del PDF base">
+              <img src="pdf_assets/page_03_img_01.jpg" alt="Página 3 del PDF base">
+              <img src="pdf_assets/page_04_img_01.jpg" alt="Página 4 del PDF base">
+              <img src="pdf_assets/page_05_img_01.jpg" alt="Página 5 del PDF base">
+            </div>
+            <button class="paper-btn secondary" data-view-target="sources">
+              Explorar páginas fuente
+            </button>
+          </article>
+        </section>
+      </section>
+
+      <section id="view-notebook" class="view" aria-labelledby="notebookTitle">
+        <div class="notebook-shell">
+          <div class="notebook-topbar">
+            <div>
+              <p class="section-kicker">Cuaderno escolar interactivo</p>
+              <h3 id="notebookTitle">Hojas del cuaderno</h3>
+            </div>
+            <div class="notebook-controls">
+              <button class="paper-btn secondary" id="prevPageBtn">Hoja anterior</button>
+              <div class="page-indicator" id="pageIndicator">Hoja 1 / 1</div>
+              <button class="paper-btn" id="nextPageBtn">Hoja siguiente</button>
+            </div>
+          </div>
+
+          <div class="chapter-tabs" id="chapterTabs" aria-label="Pestañas de capítulos"></div>
+
+          <div class="paper-stage">
+            <div class="paper-layer layer-back-a" aria-hidden="true"></div>
+            <div class="paper-layer layer-back-b" aria-hidden="true"></div>
+            <article class="paper-sheet" id="paperSheet"></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-labs" class="view" aria-labelledby="labsTitle">
+        <div class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Simulación propia</p>
+              <h3 id="labsTitle">Laboratorio del oído y del sonido</h3>
+            </div>
+          </div>
+          <p class="labs-intro">
+            Las dos animaciones heredadas en formato `.ruf` fueron reinterpretadas como
+            simulaciones modernas en HTML/Canvas. Además agregué laboratorios nuevos sobre
+            transducción auditiva, tonotopía coclear, resonancia del conducto auditivo y
+            localización binaural.
+          </p>
+          <div class="lab-grid" id="labGrid"></div>
+        </div>
+
+        <section class="section-block archive-grid">
+          <article class="archive-card">
+            <p class="section-kicker">Archivos originales</p>
+            <h3>Animaciones heredadas</h3>
+            <p>
+              Los archivos Flash originales se conservan como referencia histórica del
+              proyecto, pero ya no sirven como núcleo principal porque los navegadores
+              modernos no ejecutan `.swf` de forma nativa.
+            </p>
+            <div class="archive-links">
+              <a class="paper-link" href="animaciones/EfectoDoppler.ruf" target="_blank" rel="noreferrer">
+                Abrir `EfectoDoppler.ruf`
+              </a>
+              <a class="paper-link" href="animaciones/OndasdeChoque.ruf" target="_blank" rel="noreferrer">
+                Abrir `OndasdeChoque.ruf`
+              </a>
+            </div>
+          </article>
+
+          <article class="archive-card">
+            <p class="section-kicker">Recurso externo</p>
+            <h3>Apoyo extra para Doppler</h3>
+            <p>
+              Como complemento dejé enlazado un recurso didáctico de Flipping Physics con
+              demostraciones clásicas del efecto Doppler, útil para contrastar con la
+              simulación propia.
+            </p>
+            <a
+              class="paper-link"
+              href="https://www.flippingphysics.com/doppler-effect.html"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Abrir recurso externo
+            </a>
+          </article>
+        </section>
+      </section>
+
+      <section id="view-sources" class="view" aria-labelledby="sourcesTitle">
+        <div class="source-layout">
+          <article class="source-paper">
+            <div class="section-heading compact">
+              <div>
+                <p class="section-kicker">PDF base de esta carpeta</p>
+                <h3 id="sourcesTitle">Qué tomé del material original</h3>
+              </div>
+            </div>
+            <p class="source-copy">
+              El PDF escaneado se convirtió en la columna vertebral de la parte anatómica.
+              Estas páginas aportan la división del oído, los nombres principales y la
+              ruta del sonido hasta el nervio coclear. Luego el cuaderno amplía ese mapa
+              con explicaciones físicas y aplicaciones.
+            </p>
+
+            <div class="source-gallery">
+              <figure class="source-card-figure">
+                <img src="pdf_assets/page_01_img_01.jpg" alt="Página 1 del PDF: regiones del oído">
+                <figcaption>
+                  Página 1: oído externo, medio e interno como estructura base del tema.
+                </figcaption>
+              </figure>
+              <figure class="source-card-figure">
+                <img src="pdf_assets/page_02_img_01.jpg" alt="Página 2 del PDF: oído externo">
+                <figcaption>
+                  Página 2: pabellón auricular, conducto auditivo y membrana timpánica.
+                </figcaption>
+              </figure>
+              <figure class="source-card-figure">
+                <img src="pdf_assets/page_03_img_01.jpg" alt="Página 3 del PDF: huesecillos">
+                <figcaption>
+                  Página 3: martillo, yunque y estribo como cadena de transmisión.
+                </figcaption>
+              </figure>
+              <figure class="source-card-figure">
+                <img src="pdf_assets/page_04_img_01.jpg" alt="Página 4 del PDF: oído interno">
+                <figcaption>
+                  Página 4: la cóclea y el nervio coclear como centro de transducción.
+                </figcaption>
+              </figure>
+              <figure class="source-card-figure">
+                <img src="pdf_assets/page_05_img_01.jpg" alt="Página 5 del PDF: recorrido del sonido">
+                <figcaption>
+                  Página 5: viaje del sonido desde el aire hasta la señal nerviosa.
+                </figcaption>
+              </figure>
+            </div>
+          </article>
+
+          <aside class="source-side">
+            <article class="side-card">
+              <p class="section-kicker">Ampliaciones añadidas</p>
+              <ul class="check-list">
+                <li>Frecuencia, periodo, longitud de onda e intensidad.</li>
+                <li>Decibeles y cuidado auditivo.</li>
+                <li>Tonotopía de la membrana basilar.</li>
+                <li>Localización binaural.</li>
+                <li>Efecto Doppler aplicado a sirenas y radar acústico.</li>
+                <li>Ondas de choque, número de Mach y riesgo por sobrepresión.</li>
+              </ul>
+            </article>
+
+            <article class="side-card">
+              <p class="section-kicker">Recursos consultables</p>
+              <div class="resource-links">
+                <a class="paper-link" href="oido.pdf" target="_blank" rel="noreferrer">PDF del oído</a>
+                <a
+                  class="paper-link"
+                  href="https://www.nidcd.nih.gov/news/multimedia/journey-of-sound-video"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Video del NIDCD/NIH
+                </a>
+                <a
+                  class="paper-link"
+                  href="https://www.nidcd.nih.gov/health/noise-induced-hearing-loss-0"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  NIDCD: ruido y pérdida auditiva
+                </a>
+                <a
+                  class="paper-link"
+                  href="https://www.flippingphysics.com/doppler-effect.html"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Flipping Physics: efecto Doppler
+                </a>
+              </div>
+            </article>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="chat-fab" id="chatFab" aria-label="Abrir chatbot del cuaderno">
+    <img id="chatFabImg" class="chat-fab-img" src="imagenes/ai_assistant.png" alt="Asistente IA">
+    <div class="chat-fab-bubble">Asistente del cuaderno</div>
+  </div>
+
+  <div class="chat-window" id="chatWindow" aria-live="polite" aria-label="Tutor virtual de física del oído">
+    <div class="chat-header" id="chatDragHandle">
+      <div class="chat-header-left">
+        <div id="chatAvatar" class="chat-avatar-frame">
+          <img src="imagenes/ai_assistant.png" alt="Avatar del chatbot">
+        </div>
+        <div>
+          <div class="chat-name" id="chatName">Asistente IA</div>
+          <div class="chat-status"><span class="status-dot"></span> En línea</div>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-icon-btn" id="chatScientistBtn" type="button" aria-label="Cambiar científico">P</button>
+        <button class="chat-icon-btn" id="chatConfigBtn" type="button" aria-label="Configurar API">API</button>
+        <button class="chat-icon-btn" id="chatCloseBtn" type="button" aria-label="Cerrar chatbot">X</button>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">
+        <div class="msg-bubble">
+          Selecciona un científico o empieza a preguntar. Desde aquí también puedes abrir el cuaderno o el laboratorio.
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-quick-actions" id="chatQuickActions">
+      <button class="chat-action-btn" id="chatActionNotebook" type="button">Cuaderno</button>
+      <button class="chat-action-btn" id="chatActionLabs" type="button">Laboratorio</button>
+      <button class="chat-action-btn" id="chatActionDoppler" type="button">Doppler</button>
+      <button class="chat-action-btn" id="chatActionHome" type="button">Inicio</button>
+    </div>
+
+    <div class="chat-config hidden" id="chatConfigPanel" aria-label="Configuración del chatbot">
+      <label class="chat-label" for="chatApiKeyInput">API key</label>
+      <input id="chatApiKeyInput" class="chat-input" type="password" placeholder="sk-...">
+      <label class="chat-label" for="chatModelInput">Modelo</label>
+      <input id="chatModelInput" class="chat-input" type="text" placeholder="gpt-4o-mini">
+      <button class="paper-btn" id="saveApiBtn" type="button">Guardar configuración</button>
+      <p class="chat-helper">
+        Si no guardas una clave, el chat responde con la base local del cuaderno y de las animaciones.
+      </p>
+    </div>
+
+    <div class="chat-input-area">
+      <input
+        type="text"
+        class="chat-input"
+        id="chatInput"
+        placeholder="Pregunta por la cóclea, la audición binaural, el efecto Doppler o las ondas de choque..."
+      >
+      <button class="chat-send-btn" id="sendChatBtn" type="button" aria-label="Enviar mensaje">Enviar</button>
+    </div>
+  </div>
+
+  <div class="scientist-overlay" id="scientistOverlay">
+    <div class="scientist-modal">
+      <h2>Elige tu mentor científico</h2>
+      <p>
+        Esta versión recupera el selector visual del proyecto anterior, pero ahora enfocado al tema del oído y del sonido.
+      </p>
+      <div class="scientist-grid" id="scientistSelector"></div>
+    </div>
+  </div>
+
+  <div class="cinematic-overlay" id="cinematicOverlay">
+    <div class="cinematic-content">
+      <div class="cinematic-icon" id="cinematicIcon"></div>
+      <h1 id="cinematicName"></h1>
+      <p id="cinematicQuote"></p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

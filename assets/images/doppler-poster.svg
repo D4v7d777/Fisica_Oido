@@ -1,0 +1,55 @@
+<svg width="1200" height="820" viewBox="0 0 1200 820" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="820" rx="34" fill="#FFF8EA"/>
+  <rect x="48" y="48" width="1104" height="724" rx="28" fill="#FFFDF7" stroke="#E2D2B5" stroke-width="4"/>
+
+  <text x="84" y="116" fill="#23344A" font-family="Verdana, sans-serif" font-size="42" font-weight="700">
+    Efecto Doppler sonoro
+  </text>
+  <text x="84" y="154" fill="#5C6A7B" font-family="Verdana, sans-serif" font-size="24">
+    La fuente móvil comprime frentes delante y los separa detrás
+  </text>
+
+  <line x1="92" y1="598" x2="1104" y2="598" stroke="#C8BCA7" stroke-width="8" stroke-linecap="round"/>
+
+  <g opacity="0.9">
+    <circle cx="684" cy="448" r="56" stroke="#1F78B8" stroke-width="8"/>
+    <circle cx="684" cy="448" r="104" stroke="#1F78B8" stroke-width="8"/>
+    <circle cx="684" cy="448" r="152" stroke="#1F78B8" stroke-width="8"/>
+  </g>
+
+  <g opacity="0.8">
+    <circle cx="684" cy="448" r="218" stroke="#D88C55" stroke-width="8"/>
+    <circle cx="684" cy="448" r="292" stroke="#D88C55" stroke-width="8"/>
+    <circle cx="684" cy="448" r="366" stroke="#D88C55" stroke-width="8"/>
+  </g>
+
+  <g>
+    <rect x="542" y="430" width="214" height="92" rx="26" fill="#F4C548" stroke="#C48B16" stroke-width="6"/>
+    <rect x="576" y="402" width="106" height="40" rx="18" fill="#FFEDAF" stroke="#C48B16" stroke-width="6"/>
+    <circle cx="586" cy="536" r="30" fill="#23344A"/>
+    <circle cx="714" cy="536" r="30" fill="#23344A"/>
+    <path d="M748 452L812 478" stroke="#23344A" stroke-width="8" stroke-linecap="round"/>
+    <path d="M800 446L844 478" stroke="#23344A" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <circle cx="1014" cy="450" r="20" fill="#0F766E"/>
+  <circle cx="164" cy="450" r="20" fill="#B35E43"/>
+  <text x="942" y="492" fill="#0F766E" font-family="Verdana, sans-serif" font-size="28" font-weight="700">observador delante</text>
+  <text x="92" y="492" fill="#B35E43" font-family="Verdana, sans-serif" font-size="28" font-weight="700">observador detrás</text>
+
+  <rect x="850" y="234" width="210" height="118" rx="24" fill="#E5F1FF"/>
+  <text x="878" y="286" fill="#1F78B8" font-family="Verdana, sans-serif" font-size="26" font-weight="700">
+    Crestas comprimidas
+  </text>
+  <text x="878" y="324" fill="#4E6278" font-family="Verdana, sans-serif" font-size="20">
+    tono percibido más alto
+  </text>
+
+  <rect x="108" y="234" width="228" height="118" rx="24" fill="#F8E8D6"/>
+  <text x="136" y="286" fill="#B35E43" font-family="Verdana, sans-serif" font-size="26" font-weight="700">
+    Crestas separadas
+  </text>
+  <text x="136" y="324" fill="#4E6278" font-family="Verdana, sans-serif" font-size="20">
+    tono percibido más bajo
+  </text>
+</svg>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Localización binaural</title>
+  <style>
+    :root {
+      --paper: #fff9ef;
+      --ink: #22364c;
+      --teal: #0f766e;
+      --blue: #1d4ed8;
+      --orange: #d97706;
+      --muted: #687789;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(29, 78, 216, 0.10), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.10), transparent 28%),
+        var(--paper);
+      color: var(--ink);
+    }
+
+    .lab-shell {
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .lab-head h1 {
+      margin: 0;
+      font-size: 1.55rem;
+    }
+
+    .lab-head p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      display: grid;
+      gap: 0.85rem;
+      padding: 0.95rem;
+      border-radius: 1.1rem;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+      box-shadow: 0 12px 28px rgba(71, 47, 20, 0.08);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      background: linear-gradient(180deg, #fdfaf2, #f7efe0);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .control {
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .control label {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .control span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+
+    .actions,
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.72rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--teal);
+      color: white;
+    }
+
+    button.secondary {
+      background: rgba(35, 54, 76, 0.12);
+      color: var(--ink);
+    }
+
+    .stat {
+      min-width: 10rem;
+      padding: 0.78rem 0.92rem;
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+
+    .stat strong,
+    .stat span {
+      display: block;
+    }
+
+    .stat span {
+      color: var(--muted);
+      margin-top: 0.2rem;
+      line-height: 1.45;
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 820px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="lab-shell">
+    <div class="lab-head">
+      <h1>Localización binaural</h1>
+      <p>
+        El cerebro compara cuándo llega el sonido a cada oído y con qué intensidad.
+        Esa diferencia temporal e interaural permite estimar dirección.
+      </p>
+    </div>
+
+    <div class="panel">
+      <canvas id="binauralCanvas" width="960" height="360" aria-label="Simulación de localización binaural"></canvas>
+
+      <div class="controls">
+        <div class="control">
+          <label for="angleRange">Ángulo de la fuente</label>
+          <input id="angleRange" type="range" min="-90" max="90" step="1" value="38">
+          <span id="angleValue">38°</span>
+        </div>
+        <div class="control">
+          <label for="freqRange">Frecuencia del sonido</label>
+          <input id="freqRange" type="range" min="250" max="6000" step="10" value="2200">
+          <span id="freqValue">2200 Hz</span>
+        </div>
+        <div class="control">
+          <label for="distanceRange">Distancia de la fuente</label>
+          <input id="distanceRange" type="range" min="0.8" max="4.0" step="0.05" value="1.6">
+          <span id="distanceValue">1.60 m</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="toggleBtn" type="button">Pausar</button>
+        <button id="resetBtn" type="button" class="secondary">Reiniciar</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <strong id="leadText">Llega antes al oído derecho</strong>
+          <span>La diferencia interaural de tiempo indica cuál oído recibe primero la onda.</span>
+        </div>
+        <div class="stat">
+          <strong id="itdText">ITD: 412 μs</strong>
+          <span>Diferencia de tiempo de llegada calculada a partir de la geometría.</span>
+        </div>
+        <div class="stat">
+          <strong id="ildText">ILD: 7.6 dB</strong>
+          <span>La cabeza produce sombra acústica, sobre todo cuando la frecuencia es alta.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("binauralCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const angleRange = document.getElementById("angleRange");
+    const freqRange = document.getElementById("freqRange");
+    const distanceRange = document.getElementById("distanceRange");
+    const angleValue = document.getElementById("angleValue");
+    const freqValue = document.getElementById("freqValue");
+    const distanceValue = document.getElementById("distanceValue");
+    const leadText = document.getElementById("leadText");
+    const itdText = document.getElementById("itdText");
+    const ildText = document.getElementById("ildText");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const state = {
+      angleDeg: Number(angleRange.value),
+      frequency: Number(freqRange.value),
+      distanceM: Number(distanceRange.value),
+      rings: [],
+      elapsed: 0,
+      lastTime: 0,
+      emitTimer: 0,
+      paused: false
+    };
+
+    function geometry() {
+      const head = { x: 468, y: 188, radius: 54 };
+      const leftEar = { x: head.x - head.radius, y: head.y };
+      const rightEar = { x: head.x + head.radius, y: head.y };
+      const radians = (state.angleDeg * Math.PI) / 180;
+      const radius = 110 + state.distanceM * 72;
+      const source = {
+        x: head.x + Math.cos(radians) * radius,
+        y: head.y - Math.sin(radians) * radius
+      };
+
+      const leftDist = Math.hypot(source.x - leftEar.x, source.y - leftEar.y);
+      const rightDist = Math.hypot(source.x - rightEar.x, source.y - rightEar.y);
+      const itdSeconds = (rightDist - leftDist) / 3430;
+      const freqFactor = Math.min(1, state.frequency / 4500);
+      const angleFactor = Math.abs(Math.sin(radians));
+      const ild = angleFactor * freqFactor * 18;
+
+      return {
+        head,
+        leftEar,
+        rightEar,
+        source,
+        leftDist,
+        rightDist,
+        itdSeconds,
+        ild
+      };
+    }
+
+    function syncControls() {
+      state.angleDeg = Number(angleRange.value);
+      state.frequency = Number(freqRange.value);
+      state.distanceM = Number(distanceRange.value);
+
+      angleValue.textContent = `${state.angleDeg}°`;
+      freqValue.textContent = `${Math.round(state.frequency)} Hz`;
+      distanceValue.textContent = `${state.distanceM.toFixed(2)} m`;
+
+      const info = geometry();
+      const itdMicro = Math.abs(info.itdSeconds) * 1e6;
+      const sourceRight = info.source.x > info.head.x;
+      const signedIld = sourceRight ? info.ild : -info.ild;
+
+      if (Math.abs(info.itdSeconds) < 0.00003) {
+        leadText.textContent = "Llega casi igual a ambos oídos";
+      } else if (info.itdSeconds < 0) {
+        leadText.textContent = "Llega antes al oído derecho";
+      } else {
+        leadText.textContent = "Llega antes al oído izquierdo";
+      }
+
+      itdText.textContent = `ITD: ${Math.round(itdMicro)} μs`;
+      ildText.textContent = `ILD: ${signedIld.toFixed(1)} dB`;
+    }
+
+    function emitRing() {
+      const info = geometry();
+      state.rings.push({ x: info.source.x, y: info.source.y, radius: 8, alpha: 0.86 });
+    }
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#fffaf0";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "rgba(80, 120, 164, 0.10)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += 48) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += 48) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawScene() {
+      const info = geometry();
+
+      ctx.strokeStyle = "rgba(35, 54, 76, 0.22)";
+      ctx.setLineDash([8, 10]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(info.source.x, info.source.y);
+      ctx.lineTo(info.leftEar.x, info.leftEar.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(info.source.x, info.source.y);
+      ctx.lineTo(info.rightEar.x, info.rightEar.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      state.rings.forEach((ring) => {
+        ctx.strokeStyle = `rgba(29, 78, 216, ${ring.alpha})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      ctx.fillStyle = "#1d4ed8";
+      ctx.beginPath();
+      ctx.arc(info.source.x, info.source.y, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "700 15px Segoe UI";
+      ctx.fillText("S", info.source.x - 5, info.source.y + 5);
+
+      ctx.fillStyle = "#e4c7aa";
+      ctx.beginPath();
+      ctx.arc(info.head.x, info.head.y, info.head.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#b67f59";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.fillStyle = "#d85d53";
+      ctx.beginPath();
+      ctx.arc(info.leftEar.x, info.leftEar.y, 9, 0, Math.PI * 2);
+      ctx.arc(info.rightEar.x, info.rightEar.y, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#22364c";
+      ctx.font = "700 16px Segoe UI";
+      ctx.fillText("Oído izquierdo", info.leftEar.x - 56, 92);
+      ctx.fillText("Oído derecho", info.rightEar.x - 42, 92);
+      ctx.fillText("Fuente", info.source.x - 24, info.source.y - 24);
+
+      const barsBaseY = 316;
+      const leftBar = 42 + Math.max(0.2, 1 - Math.max(0, info.ild) / 18) * 64;
+      const rightBar = 42 + Math.max(0.2, 1 + Math.min(0, info.ild) / 18) * 64;
+
+      ctx.fillStyle = "rgba(35, 54, 76, 0.10)";
+      ctx.fillRect(160, barsBaseY - 90, 44, 90);
+      ctx.fillRect(756, barsBaseY - 90, 44, 90);
+
+      ctx.fillStyle = "#0f766e";
+      ctx.fillRect(160, barsBaseY - leftBar, 44, leftBar);
+      ctx.fillStyle = "#d97706";
+      ctx.fillRect(756, barsBaseY - rightBar, 44, rightBar);
+
+      ctx.fillStyle = "#22364c";
+      ctx.font = "700 14px Segoe UI";
+      ctx.fillText("Nivel L", 156, 334);
+      ctx.fillText("Nivel R", 752, 334);
+
+      drawTimeline(info);
+    }
+
+    function drawTimeline(info) {
+      const baseX = 250;
+      const baseY = 314;
+      const width = 460;
+      const itdMicro = info.itdSeconds * 1e6;
+      const centerX = baseX + width / 2;
+      const offset = Math.max(-150, Math.min(150, itdMicro / 4.5));
+
+      ctx.strokeStyle = "#22364c";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(baseX, baseY);
+      ctx.lineTo(baseX + width, baseY);
+      ctx.stroke();
+
+      ctx.fillStyle = "#22364c";
+      ctx.font = "700 14px Segoe UI";
+      ctx.fillText("Diferencia temporal entre ambos oídos", baseX + 88, baseY - 34);
+
+      ctx.fillStyle = "#0f766e";
+      ctx.beginPath();
+      ctx.arc(centerX - offset, baseY, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#d97706";
+      ctx.beginPath();
+      ctx.arc(centerX + offset, baseY, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#22364c";
+      ctx.fillText("L", centerX - offset - 4, baseY - 14);
+      ctx.fillText("R", centerX + offset - 4, baseY - 14);
+    }
+
+    function update(dt) {
+      if (!state.paused) {
+        state.elapsed += dt;
+        state.emitTimer += dt;
+        const emitRate = 0.34 + Math.min(0.8, state.frequency / 7000);
+        if (state.emitTimer >= emitRate) {
+          state.emitTimer = 0;
+          emitRing();
+        }
+      }
+
+      state.rings = state.rings
+        .map((ring) => ({
+          ...ring,
+          radius: ring.radius + dt * 138,
+          alpha: ring.alpha - dt * 0.34
+        }))
+        .filter((ring) => ring.alpha > 0);
+    }
+
+    function frame(timestamp) {
+      if (!state.lastTime) {
+        state.lastTime = timestamp;
+      }
+
+      const dt = Math.min(0.032, (timestamp - state.lastTime) / 1000);
+      state.lastTime = timestamp;
+
+      update(dt);
+      drawBackground();
+      drawScene();
+      requestAnimationFrame(frame);
+    }
+
+    [angleRange, freqRange, distanceRange].forEach((input) => {
+      input.addEventListener("input", syncControls);
+    });
+
+    toggleBtn.addEventListener("click", () => {
+      state.paused = !state.paused;
+      toggleBtn.textContent = state.paused ? "Reanudar" : "Pausar";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      state.angleDeg = 38;
+      state.frequency = 2200;
+      state.distanceM = 1.6;
+      state.elapsed = 0;
+      state.emitTimer = 0;
+      state.rings = [];
+      state.paused = false;
+      angleRange.value = state.angleDeg;
+      freqRange.value = state.frequency;
+      distanceRange.value = state.distanceM;
+      toggleBtn.textContent = "Pausar";
+      syncControls();
+    });
+
+    syncControls();
+    emitRing();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

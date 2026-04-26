@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transducción auditiva</title>
+  <style>
+    :root {
+      --paper: #fff9ef;
+      --ink: #22364c;
+      --teal: #0f766e;
+      --blue: #215399;
+      --orange: #d97706;
+      --muted: #687789;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(29, 78, 216, 0.10), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.10), transparent 24%),
+        var(--paper);
+      color: var(--ink);
+    }
+    .lab-shell {
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+    .lab-head h1 {
+      margin: 0;
+      font-size: 1.55rem;
+    }
+    .lab-head p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+    .panel {
+      display: grid;
+      gap: 0.85rem;
+      padding: 0.95rem;
+      border-radius: 1.1rem;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+      box-shadow: 0 12px 28px rgba(71, 47, 20, 0.08);
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      background: linear-gradient(180deg, #fdfaf3, #f7efe0);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    .control {
+      display: grid;
+      gap: 0.3rem;
+    }
+    .control label {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+    .control span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+    .stat {
+      min-width: 10rem;
+      padding: 0.78rem 0.92rem;
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+    .stat strong,
+    .stat span { display: block; }
+    .stat span {
+      color: var(--muted);
+      margin-top: 0.2rem;
+      line-height: 1.45;
+      font-size: 0.86rem;
+    }
+    @media (max-width: 820px) {
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="lab-shell">
+    <div class="lab-head">
+      <h1>Transducción auditiva</h1>
+      <p>
+        La onda en aire empuja el tímpano, los huesecillos transmiten la vibración y la cóclea
+        transforma ese movimiento en actividad nerviosa.
+      </p>
+    </div>
+
+    <div class="panel">
+      <canvas id="earCanvas" width="960" height="360" aria-label="Simulación de transducción auditiva"></canvas>
+
+      <div class="controls">
+        <div class="control">
+          <label for="freqRange">Frecuencia sonora</label>
+          <input id="freqRange" type="range" min="150" max="5000" step="10" value="900">
+          <span id="freqValue">900 Hz</span>
+        </div>
+        <div class="control">
+          <label for="ampRange">Amplitud visual</label>
+          <input id="ampRange" type="range" min="0.2" max="1.0" step="0.01" value="0.62">
+          <span id="ampValue">0.62</span>
+        </div>
+        <div class="control">
+          <label for="flowRange">Ganancia del oído medio</label>
+          <input id="flowRange" type="range" min="0.6" max="1.6" step="0.01" value="1.08">
+          <span id="flowValue">1.08x</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <strong id="bandText">Banda media</strong>
+          <span>Describe dónde tiende a responder la cóclea.</span>
+        </div>
+        <div class="stat">
+          <strong>Tímpano → huesecillos → cóclea</strong>
+          <span>Secuencia mecánica simplificada.</span>
+        </div>
+        <div class="stat">
+          <strong id="signalText">Señal nerviosa moderada</strong>
+          <span>La salida crece cuando la vibración mecánica aumenta.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("earCanvas");
+    const ctx = canvas.getContext("2d");
+    const freqRange = document.getElementById("freqRange");
+    const ampRange = document.getElementById("ampRange");
+    const flowRange = document.getElementById("flowRange");
+    const freqValue = document.getElementById("freqValue");
+    const ampValue = document.getElementById("ampValue");
+    const flowValue = document.getElementById("flowValue");
+    const bandText = document.getElementById("bandText");
+    const signalText = document.getElementById("signalText");
+
+    const state = {
+      frequency: Number(freqRange.value),
+      amplitude: Number(ampRange.value),
+      gain: Number(flowRange.value),
+      phase: 0,
+      lastTime: 0,
+      nervePulses: []
+    };
+
+    function syncControls() {
+      state.frequency = Number(freqRange.value);
+      state.amplitude = Number(ampRange.value);
+      state.gain = Number(flowRange.value);
+      freqValue.textContent = `${state.frequency} Hz`;
+      ampValue.textContent = state.amplitude.toFixed(2);
+      flowValue.textContent = `${state.gain.toFixed(2)}x`;
+
+      if (state.frequency < 500) {
+        bandText.textContent = "Banda grave: viaja más profundo";
+      } else if (state.frequency < 2000) {
+        bandText.textContent = "Banda media: respuesta intermedia";
+      } else {
+        bandText.textContent = "Banda aguda: responde cerca de la base";
+      }
+
+      const signalLevel = state.amplitude * state.gain;
+      if (signalLevel < 0.6) {
+        signalText.textContent = "Señal nerviosa suave";
+      } else if (signalLevel < 1.1) {
+        signalText.textContent = "Señal nerviosa moderada";
+      } else {
+        signalText.textContent = "Señal nerviosa intensa";
+      }
+    }
+
+    function pointOnSpiral(t) {
+      const turns = 2.3;
+      const angle = 0.4 + t * Math.PI * 2 * turns;
+      const radius = 74 - t * 42;
+      return {
+        x: 744 + Math.cos(angle) * radius,
+        y: 182 + Math.sin(angle) * radius
+      };
+    }
+
+    function emitPulse() {
+      state.nervePulses.push({ x: 822, y: 182, life: 1 });
+    }
+
+    function update(dt) {
+      const visualRate = 1.1 + Math.log10(state.frequency) * 0.65;
+      state.phase += dt * visualRate * Math.PI * 2;
+      if (state.phase > Math.PI * 2) {
+        state.phase -= Math.PI * 2;
+        emitPulse();
+      }
+      state.nervePulses = state.nervePulses
+        .map((pulse) => ({ ...pulse, x: pulse.x + dt * 120, life: pulse.life - dt * 0.8 }))
+        .filter((pulse) => pulse.life > 0);
+    }
+
+    function drawCanalAndWave() {
+      ctx.strokeStyle = "#e09a68";
+      ctx.lineWidth = 28;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(120, 182);
+      ctx.lineTo(342, 182);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      for (let x = 120; x <= 342; x += 4) {
+        const progress = (x - 120) / 222;
+        const y = 182 + Math.sin(progress * 16 - state.phase) * 18 * state.amplitude;
+        if (x === 120) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function drawMiddleEar() {
+      const drumOffset = Math.sin(state.phase) * 10 * state.amplitude;
+      const lever = Math.sin(state.phase) * 18 * state.amplitude * state.gain;
+
+      ctx.strokeStyle = "#d85d53";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(362, 140 + drumOffset);
+      ctx.lineTo(362, 224 - drumOffset);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#23344a";
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(390, 182);
+      ctx.lineTo(446, 156 + lever * 0.2);
+      ctx.lineTo(494, 206 - lever * 0.4);
+      ctx.lineTo(538, 160 + lever * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = "#fff1e2";
+      [446, 494, 538].forEach((x, index) => {
+        const y = index === 0 ? 156 + lever * 0.2 : index === 1 ? 206 - lever * 0.4 : 160 + lever * 0.25;
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#d85d53";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      });
+    }
+
+    function drawCochlea() {
+      ctx.strokeStyle = "#2e7db5";
+      ctx.lineWidth = 22;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      for (let i = 0; i <= 140; i++) {
+        const point = pointOnSpiral(i / 140);
+        if (i === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = "#b8dbfb";
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      for (let i = 0; i <= 140; i++) {
+        const point = pointOnSpiral(i / 140);
+        if (i === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      }
+      ctx.stroke();
+
+      const logMin = Math.log(150);
+      const logMax = Math.log(5000);
+      const t = 1 - (Math.log(state.frequency) - logMin) / (logMax - logMin);
+      const peak = pointOnSpiral(t);
+
+      ctx.fillStyle = "#f4c548";
+      ctx.beginPath();
+      ctx.arc(peak.x, peak.y, 13 + state.amplitude * 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(548, 160);
+      ctx.lineTo(646, 166);
+      ctx.stroke();
+    }
+
+    function drawNerve() {
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(822, 182);
+      ctx.lineTo(930, 182);
+      ctx.stroke();
+
+      state.nervePulses.forEach((pulse) => {
+        ctx.fillStyle = `rgba(15,118,110,${pulse.life})`;
+        ctx.beginPath();
+        ctx.arc(pulse.x, pulse.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawLabels() {
+      ctx.fillStyle = "#23344a";
+      ctx.font = "18px Verdana";
+      ctx.fillText("aire y conducto", 138, 134);
+      ctx.fillText("tímpano", 334, 252);
+      ctx.fillText("huesecillos", 400, 124);
+      ctx.fillText("cóclea", 690, 86);
+      ctx.fillText("nervio", 860, 154);
+    }
+
+    function drawFrame(time) {
+      if (!state.lastTime) state.lastTime = time;
+      const dt = Math.min(0.04, (time - state.lastTime) / 1000);
+      state.lastTime = time;
+      update(dt);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#fffaf1";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drawCanalAndWave();
+      drawMiddleEar();
+      drawCochlea();
+      drawNerve();
+      drawLabels();
+      requestAnimationFrame(drawFrame);
+    }
+
+    [freqRange, ampRange, flowRange].forEach((input) => input.addEventListener("input", syncControls));
+    syncControls();
+    requestAnimationFrame(drawFrame);
+  </script>
+</body>
+</html>

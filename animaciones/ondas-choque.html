@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ondas de choque</title>
+  <style>
+    :root {
+      --paper: #fff9ef;
+      --ink: #22364c;
+      --teal: #0f766e;
+      --blue: #215399;
+      --orange: #d97706;
+      --muted: #687789;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 20%),
+        radial-gradient(circle at bottom right, rgba(217, 119, 6, 0.10), transparent 22%),
+        var(--paper);
+      color: var(--ink);
+    }
+
+    .lab-shell {
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .lab-head h1 {
+      margin: 0;
+      font-size: 1.55rem;
+    }
+
+    .lab-head p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      display: grid;
+      gap: 0.85rem;
+      padding: 0.95rem;
+      border-radius: 1.1rem;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+      box-shadow: 0 12px 28px rgba(71, 47, 20, 0.08);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      background: linear-gradient(180deg, #fdfaf3, #f6efe1);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .control {
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .control label {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .control span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--orange);
+    }
+
+    .stats,
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+
+    .stat {
+      min-width: 10rem;
+      padding: 0.78rem 0.92rem;
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+
+    .stat strong,
+    .stat span {
+      display: block;
+    }
+
+    .stat span {
+      color: var(--muted);
+      margin-top: 0.2rem;
+      line-height: 1.45;
+      font-size: 0.86rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.72rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--orange);
+      color: white;
+    }
+
+    button.secondary {
+      background: rgba(35, 54, 76, 0.12);
+      color: var(--ink);
+    }
+
+    @media (max-width: 820px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="lab-shell">
+    <div class="lab-head">
+      <h1>Ondas de choque y cono de Mach</h1>
+      <p>
+        Cuando la fuente supera la rapidez del sonido, los frentes se apilan y aparece una
+        envolvente angulada. Esta simulación muestra el paso de régimen sub-sónico a supersónico.
+      </p>
+    </div>
+
+    <div class="panel">
+      <canvas id="shockCanvas" width="960" height="360" aria-label="Simulación de ondas de choque"></canvas>
+
+      <div class="controls">
+        <div class="control">
+          <label for="machRange">Número de Mach</label>
+          <input id="machRange" type="range" min="0.6" max="2.4" step="0.01" value="1.35">
+          <span id="machValue">Mach 1.35</span>
+        </div>
+        <div class="control">
+          <label for="emitRange">Tasa de emisión</label>
+          <input id="emitRange" type="range" min="3" max="12" step="1" value="6">
+          <span id="emitValue">6 frentes/s</span>
+        </div>
+        <div class="control">
+          <label for="trailRange">Longitud visual del cono</label>
+          <input id="trailRange" type="range" min="160" max="360" step="10" value="280">
+          <span id="trailValue">280 px</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="toggleBtn" type="button">Pausar</button>
+        <button id="resetBtn" type="button" class="secondary">Reiniciar</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <strong id="regimeText">Régimen supersónico</strong>
+          <span>Mach menor que 1: no hay frente de choque estable.</span>
+        </div>
+        <div class="stat">
+          <strong id="angleText">μ = 47.8°</strong>
+          <span>Ángulo del cono definido por sin(μ)=1/M.</span>
+        </div>
+        <div class="stat">
+          <strong id="pressureText">Sobrepresión visible</strong>
+          <span>El boom aparece como salto brusco de presión al cruzar el frente.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("shockCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const machRange = document.getElementById("machRange");
+    const emitRange = document.getElementById("emitRange");
+    const trailRange = document.getElementById("trailRange");
+    const machValue = document.getElementById("machValue");
+    const emitValue = document.getElementById("emitValue");
+    const trailValue = document.getElementById("trailValue");
+    const regimeText = document.getElementById("regimeText");
+    const angleText = document.getElementById("angleText");
+    const pressureText = document.getElementById("pressureText");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const state = {
+      waveSpeed: 220,
+      mach: Number(machRange.value),
+      emitRate: Number(emitRange.value),
+      trailLength: Number(trailRange.value),
+      sourceX: 210,
+      sourceY: 180,
+      waves: [],
+      emitTimer: 0,
+      paused: false,
+      lastTime: 0
+    };
+
+    function emitWave() {
+      state.waves.push({ x: state.sourceX, y: state.sourceY, r: 4, alpha: 0.86 });
+    }
+
+    function resetSimulation() {
+      state.sourceX = 210;
+      state.waves = [];
+      state.emitTimer = 0;
+      state.lastTime = 0;
+      emitWave();
+    }
+
+    function syncControls() {
+      state.mach = Number(machRange.value);
+      state.emitRate = Number(emitRange.value);
+      state.trailLength = Number(trailRange.value);
+      machValue.textContent = `Mach ${state.mach.toFixed(2)}`;
+      emitValue.textContent = `${state.emitRate} frentes/s`;
+      trailValue.textContent = `${state.trailLength} px`;
+
+      if (state.mach < 1) {
+        regimeText.textContent = "Régimen sub-sónico";
+        pressureText.textContent = "Todavía no hay boom sónico";
+      } else if (state.mach < 1.02) {
+        regimeText.textContent = "Transición transónica";
+        pressureText.textContent = "El cono apenas empieza a cerrarse";
+      } else {
+        regimeText.textContent = "Régimen supersónico";
+        pressureText.textContent = "Sobrepresión visible";
+      }
+
+      const angle = state.mach > 1 ? Math.asin(1 / state.mach) * 180 / Math.PI : 90;
+      angleText.textContent = `μ = ${angle.toFixed(1)}°`;
+    }
+
+    function updatePhysics(dt) {
+      if (state.paused) {
+        return;
+      }
+
+      const speed = state.waveSpeed * state.mach;
+      state.sourceX += speed * dt;
+      if (state.sourceX > 840) {
+        state.sourceX = 160;
+        state.waves = [];
+      }
+
+      state.emitTimer += dt;
+      const interval = 1 / state.emitRate;
+      while (state.emitTimer >= interval) {
+        emitWave();
+        state.emitTimer -= interval;
+      }
+
+      state.waves = state.waves
+        .map((wave) => ({
+          ...wave,
+          r: wave.r + state.waveSpeed * dt,
+          alpha: Math.max(0, wave.alpha - dt * 0.08)
+        }))
+        .filter((wave) => wave.r < 1200 && wave.alpha > 0.06);
+    }
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#fffaf1";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "rgba(80, 120, 164, 0.10)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += 48) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += 48) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "rgba(197, 153, 58, 0.26)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(82, 282);
+      ctx.lineTo(880, 282);
+      ctx.stroke();
+    }
+
+    function drawWaves() {
+      state.waves.forEach((wave) => {
+        ctx.save();
+        ctx.globalAlpha = wave.alpha;
+        ctx.strokeStyle = "#d97706";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(wave.x, wave.y, wave.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    function drawMachCone() {
+      if (state.mach <= 1) {
+        return;
+      }
+      const mu = Math.asin(1 / state.mach);
+      const length = state.trailLength;
+
+      const upperX = state.sourceX - Math.cos(mu) * length;
+      const upperY = state.sourceY - Math.sin(mu) * length;
+      const lowerX = state.sourceX - Math.cos(mu) * length;
+      const lowerY = state.sourceY + Math.sin(mu) * length;
+
+      ctx.fillStyle = "rgba(15, 118, 110, 0.12)";
+      ctx.beginPath();
+      ctx.moveTo(state.sourceX, state.sourceY);
+      ctx.lineTo(upperX, upperY);
+      ctx.lineTo(lowerX, lowerY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(state.sourceX, state.sourceY);
+      ctx.lineTo(upperX, upperY);
+      ctx.moveTo(state.sourceX, state.sourceY);
+      ctx.lineTo(lowerX, lowerY);
+      ctx.stroke();
+
+      ctx.fillStyle = "#0f766e";
+      ctx.font = "18px Verdana";
+      ctx.fillText("μ", state.sourceX - Math.cos(mu) * 72 + 8, state.sourceY - Math.sin(mu) * 52);
+    }
+
+    function drawSource() {
+      ctx.save();
+      ctx.translate(state.sourceX, state.sourceY);
+      ctx.fillStyle = "#215399";
+      ctx.beginPath();
+      ctx.moveTo(-46, -20);
+      ctx.lineTo(24, -20);
+      ctx.lineTo(96, 0);
+      ctx.lineTo(24, 20);
+      ctx.lineTo(-46, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#7eb3e6";
+      ctx.fillRect(-18, -11, 42, 22);
+      ctx.fillStyle = "#22364c";
+      ctx.fillText("fuente", -28, 56);
+      ctx.restore();
+    }
+
+    function frame(time) {
+      if (!state.lastTime) {
+        state.lastTime = time;
+      }
+      const dt = Math.min(0.04, (time - state.lastTime) / 1000);
+      state.lastTime = time;
+
+      updatePhysics(dt);
+      drawBackground();
+      drawWaves();
+      drawMachCone();
+      drawSource();
+      requestAnimationFrame(frame);
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      state.paused = !state.paused;
+      toggleBtn.textContent = state.paused ? "Reanudar" : "Pausar";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetSimulation();
+      state.paused = false;
+      toggleBtn.textContent = "Pausar";
+    });
+
+    [machRange, emitRange, trailRange].forEach((input) => {
+      input.addEventListener("input", syncControls);
+    });
+
+    syncControls();
+    resetSimulation();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

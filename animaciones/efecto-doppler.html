@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Efecto Doppler</title>
+  <style>
+    :root {
+      --paper: #fff9ef;
+      --ink: #22364c;
+      --teal: #0f766e;
+      --blue: #1d4ed8;
+      --orange: #d97706;
+      --muted: #687789;
+      --line: rgba(80, 120, 164, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(29, 78, 216, 0.1), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.12), transparent 28%),
+        var(--paper);
+      color: var(--ink);
+    }
+
+    .lab-shell {
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .lab-head h1 {
+      margin: 0;
+      font-size: 1.55rem;
+    }
+
+    .lab-head p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      display: grid;
+      gap: 0.85rem;
+      padding: 0.95rem;
+      border-radius: 1.1rem;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+      box-shadow: 0 12px 28px rgba(71, 47, 20, 0.08);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      background: linear-gradient(180deg, #fdfaf2, #f7efe0);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .control {
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .control label {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .control span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+
+    .actions,
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.72rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--teal);
+      color: white;
+    }
+
+    button.secondary {
+      background: rgba(35, 54, 76, 0.12);
+      color: var(--ink);
+    }
+
+    .stat {
+      min-width: 10rem;
+      padding: 0.78rem 0.92rem;
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(116, 89, 57, 0.12);
+    }
+
+    .stat strong,
+    .stat span {
+      display: block;
+    }
+
+    .stat span {
+      color: var(--muted);
+      margin-top: 0.2rem;
+      line-height: 1.45;
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 820px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="lab-shell">
+    <div class="lab-head">
+      <h1>Efecto Doppler</h1>
+      <p>
+        La fuente avanza y emite frentes de onda. Delante se comprimen y detrás se separan;
+        por eso el oído recibe una frecuencia distinta según la posición relativa.
+      </p>
+    </div>
+
+    <div class="panel">
+      <canvas id="dopplerCanvas" width="960" height="360" aria-label="Simulación del efecto Doppler"></canvas>
+
+      <div class="controls">
+        <div class="control">
+          <label for="speedRange">Velocidad de la fuente</label>
+          <input id="speedRange" type="range" min="0" max="0.92" step="0.01" value="0.42">
+          <span id="speedValue">0.42 c</span>
+        </div>
+        <div class="control">
+          <label for="emitRange">Frecuencia emitida</label>
+          <input id="emitRange" type="range" min="2" max="12" step="1" value="6">
+          <span id="emitValue">6 pulsos visuales/s</span>
+        </div>
+        <div class="control">
+          <label for="observerRange">Posición del observador</label>
+          <input id="observerRange" type="range" min="640" max="860" step="1" value="790">
+          <span id="observerValue">x = 790 px</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="toggleBtn" type="button">Pausar</button>
+        <button id="resetBtn" type="button" class="secondary">Reiniciar</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <strong id="regimeValue">Fuente acercándose</strong>
+          <span>El observador delantero recibe crestas más juntas.</span>
+        </div>
+        <div class="stat">
+          <strong id="frontFreq">f' delante = 10.34</strong>
+          <span>Frecuencia observada al frente.</span>
+        </div>
+        <div class="stat">
+          <strong id="rearFreq">f' detrás = 4.23</strong>
+          <span>Frecuencia observada detrás.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("dopplerCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const speedRange = document.getElementById("speedRange");
+    const emitRange = document.getElementById("emitRange");
+    const observerRange = document.getElementById("observerRange");
+    const speedValue = document.getElementById("speedValue");
+    const emitValue = document.getElementById("emitValue");
+    const observerValue = document.getElementById("observerValue");
+    const regimeValue = document.getElementById("regimeValue");
+    const frontFreq = document.getElementById("frontFreq");
+    const rearFreq = document.getElementById("rearFreq");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const state = {
+      waveSpeed: 220,
+      sourceX: 180,
+      sourceY: 184,
+      direction: 1,
+      speedRatio: Number(speedRange.value),
+      emitRate: Number(emitRange.value),
+      observerX: Number(observerRange.value),
+      observerY: 184,
+      waves: [],
+      emitTimer: 0,
+      lastTime: 0,
+      paused: false
+    };
+
+    const bounds = { minX: 150, maxX: 820 };
+
+    function emitWave() {
+      state.waves.push({ x: state.sourceX, y: state.sourceY, r: 2, alpha: 0.9 });
+    }
+
+    function resetSimulation() {
+      state.sourceX = 180;
+      state.direction = 1;
+      state.waves = [];
+      state.emitTimer = 0;
+      state.lastTime = 0;
+      emitWave();
+    }
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#fffaf0";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let x = 0; x <= canvas.width; x += 48) {
+        ctx.strokeStyle = "rgba(80, 120, 164, 0.10)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= canvas.height; y += 48) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "rgba(184, 134, 11, 0.25)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(82, 288);
+      ctx.lineTo(880, 288);
+      ctx.stroke();
+
+      ctx.fillStyle = "#5f6f82";
+      ctx.font = "16px Verdana";
+      ctx.fillText("frentes más juntos", 700, 56);
+      ctx.fillText("frentes más separados", 70, 56);
+    }
+
+    function drawWavefronts() {
+      state.waves.forEach((wave) => {
+        ctx.save();
+        ctx.globalAlpha = wave.alpha;
+        ctx.strokeStyle = wave.x < state.sourceX ? "#d97706" : "#1d4ed8";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(wave.x, wave.y, wave.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    function drawObserver() {
+      ctx.save();
+      ctx.translate(state.observerX, state.observerY);
+      ctx.fillStyle = "#0f766e";
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(-2, 0, 28, -0.95, 0.95);
+      ctx.stroke();
+      ctx.fillStyle = "#22364c";
+      ctx.font = "18px Verdana";
+      ctx.fillText("observador", -42, 62);
+      ctx.restore();
+    }
+
+    function drawSource() {
+      ctx.save();
+      ctx.translate(state.sourceX, state.sourceY);
+      ctx.fillStyle = "#f4c548";
+      ctx.fillRect(-60, -24, 120, 48);
+      ctx.fillStyle = "#ffefb4";
+      ctx.fillRect(-22, -42, 44, 18);
+      ctx.fillStyle = "#23344a";
+      ctx.beginPath();
+      ctx.arc(-34, 34, 14, 0, Math.PI * 2);
+      ctx.arc(34, 34, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#23344a";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(58, -8);
+      ctx.lineTo(94, 0);
+      ctx.moveTo(58, 8);
+      ctx.lineTo(94, 0);
+      ctx.stroke();
+      ctx.fillStyle = "#22364c";
+      ctx.font = "18px Verdana";
+      ctx.fillText("fuente móvil", -52, 76);
+      ctx.restore();
+    }
+
+    function updatePhysics(dt) {
+      if (state.paused) {
+        return;
+      }
+
+      const sourceSpeed = state.speedRatio * state.waveSpeed;
+      state.sourceX += state.direction * sourceSpeed * dt;
+
+      if (state.sourceX >= bounds.maxX) {
+        state.sourceX = bounds.maxX;
+        state.direction = -1;
+      } else if (state.sourceX <= bounds.minX) {
+        state.sourceX = bounds.minX;
+        state.direction = 1;
+      }
+
+      state.emitTimer += dt;
+      const interval = 1 / state.emitRate;
+      while (state.emitTimer >= interval) {
+        emitWave();
+        state.emitTimer -= interval;
+      }
+
+      state.waves = state.waves
+        .map((wave) => ({
+          ...wave,
+          r: wave.r + state.waveSpeed * dt,
+          alpha: Math.max(0, wave.alpha - dt * 0.08)
+        }))
+        .filter((wave) => wave.r < 1200 && wave.alpha > 0.05);
+    }
+
+    function updateReadouts() {
+      const c = 1;
+      const vs = state.speedRatio;
+      const approaching = (state.direction > 0 && state.sourceX < state.observerX) ||
+        (state.direction < 0 && state.sourceX > state.observerX);
+
+      const f = state.emitRate;
+      const ahead = f * (c / Math.max(0.01, (c - vs)));
+      const behind = f * (c / (c + vs));
+
+      regimeValue.textContent = approaching ? "Fuente acercándose" : "Fuente alejándose";
+      frontFreq.textContent = `f' delante = ${ahead.toFixed(2)}`;
+      rearFreq.textContent = `f' detrás = ${behind.toFixed(2)}`;
+    }
+
+    function frame(time) {
+      if (!state.lastTime) {
+        state.lastTime = time;
+      }
+      const dt = Math.min(0.04, (time - state.lastTime) / 1000);
+      state.lastTime = time;
+
+      updatePhysics(dt);
+      updateReadouts();
+      drawBackground();
+      drawWavefronts();
+      drawObserver();
+      drawSource();
+      requestAnimationFrame(frame);
+    }
+
+    function syncControls() {
+      state.speedRatio = Number(speedRange.value);
+      state.emitRate = Number(emitRange.value);
+      state.observerX = Number(observerRange.value);
+      speedValue.textContent = `${state.speedRatio.toFixed(2)} c`;
+      emitValue.textContent = `${state.emitRate} pulsos visuales/s`;
+      observerValue.textContent = `x = ${state.observerX} px`;
+    }
+
+    [speedRange, emitRange, observerRange].forEach((input) => {
+      input.addEventListener("input", syncControls);
+    });
+
+    toggleBtn.addEventListener("click", () => {
+      state.paused = !state.paused;
+      toggleBtn.textContent = state.paused ? "Reanudar" : "Pausar";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetSimulation();
+      state.paused = false;
+      toggleBtn.textContent = "Pausar";
+    });
+
+    syncControls();
+    resetSimulation();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

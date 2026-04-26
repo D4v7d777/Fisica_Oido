@@ -1,0 +1,49 @@
+<svg width="1200" height="820" viewBox="0 0 1200 820" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="820" rx="34" fill="#FFF8EA"/>
+  <rect x="48" y="48" width="1104" height="724" rx="28" fill="#FFFDF7" stroke="#E2D2B5" stroke-width="4"/>
+
+  <text x="84" y="116" fill="#23344A" font-family="Verdana, sans-serif" font-size="42" font-weight="700">
+    Localización binaural
+  </text>
+  <text x="84" y="154" fill="#5C6A7B" font-family="Verdana, sans-serif" font-size="24">
+    Dos oídos comparan tiempo e intensidad para deducir dirección
+  </text>
+
+  <circle cx="640" cy="432" r="162" fill="#F7E7D4" stroke="#D5B18C" stroke-width="8"/>
+  <rect x="602" y="270" width="76" height="324" rx="38" fill="#F0D4B7"/>
+  <ellipse cx="482" cy="432" rx="46" ry="90" fill="#D88C55"/>
+  <ellipse cx="798" cy="432" rx="46" ry="90" fill="#D88C55"/>
+  <circle cx="640" cy="412" r="18" fill="#D88C55"/>
+  <path d="M640 432L664 490H616L640 432Z" fill="#D88C55"/>
+
+  <circle cx="238" cy="282" r="20" fill="#0F766E"/>
+  <text x="148" y="256" fill="#0F766E" font-family="Verdana, sans-serif" font-size="26" font-weight="700">
+    Fuente sonora
+  </text>
+
+  <path d="M258 292C326 312 398 338 450 380" stroke="#0F766E" stroke-width="9" stroke-linecap="round"/>
+  <path d="M262 324C334 340 404 370 456 416" stroke="#0F766E" stroke-width="7" stroke-linecap="round"/>
+  <path d="M268 354C344 370 408 402 458 450" stroke="#0F766E" stroke-width="5" stroke-linecap="round"/>
+
+  <path d="M452 392L324 486" stroke="#215399" stroke-width="6" stroke-dasharray="14 12"/>
+  <path d="M792 410L960 342" stroke="#B35E43" stroke-width="6" stroke-dasharray="14 12"/>
+
+  <rect x="108" y="544" width="328" height="128" rx="24" fill="#E5F3EF"/>
+  <text x="136" y="594" fill="#0F766E" font-family="Verdana, sans-serif" font-size="26" font-weight="700">
+    Diferencia interaural de tiempo
+  </text>
+  <text x="136" y="632" fill="#4E6278" font-family="Verdana, sans-serif" font-size="20">
+    El oído cercano recibe la señal antes: Δt ayuda a estimar azimut.
+  </text>
+
+  <rect x="760" y="224" width="320" height="128" rx="24" fill="#F8E8D6"/>
+  <text x="788" y="274" fill="#B35E43" font-family="Verdana, sans-serif" font-size="26" font-weight="700">
+    Diferencia interaural de intensidad
+  </text>
+  <text x="788" y="312" fill="#4E6278" font-family="Verdana, sans-serif" font-size="20">
+    La cabeza crea sombra acústica y modifica el nivel en cada oído.
+  </text>
+
+  <text x="334" y="506" fill="#215399" font-family="Verdana, sans-serif" font-size="24" font-weight="700">Δt</text>
+  <text x="944" y="334" fill="#B35E43" font-family="Verdana, sans-serif" font-size="24" font-weight="700">ΔI</text>
+</svg>

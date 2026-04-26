@@ -1,0 +1,65 @@
+<svg width="1200" height="820" viewBox="0 0 1200 820" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="820" rx="34" fill="#FFF8EA"/>
+  <rect x="52" y="52" width="1096" height="716" rx="30" fill="#FFFDF7" stroke="#E4D4BA" stroke-width="4"/>
+
+  <text x="88" y="120" fill="#23344A" font-family="Verdana, sans-serif" font-size="42" font-weight="700">
+    Del tímpano a la cóclea
+  </text>
+  <text x="88" y="158" fill="#5D6A7C" font-family="Verdana, sans-serif" font-size="24">
+    Secuencia mecánica y sensorial del sonido en el oído
+  </text>
+
+  <g>
+    <circle cx="124" cy="278" r="28" fill="#0F766E"/>
+    <text x="116" y="288" fill="white" font-family="Verdana, sans-serif" font-size="28" font-weight="700">1</text>
+    <text x="176" y="286" fill="#23344A" font-family="Verdana, sans-serif" font-size="28" font-weight="700">Onda de presión</text>
+    <text x="176" y="322" fill="#5D6A7C" font-family="Verdana, sans-serif" font-size="22">entra por el conducto auditivo</text>
+  </g>
+
+  <g>
+    <circle cx="124" cy="406" r="28" fill="#B35E43"/>
+    <text x="114" y="416" fill="white" font-family="Verdana, sans-serif" font-size="28" font-weight="700">2</text>
+    <text x="176" y="414" fill="#23344A" font-family="Verdana, sans-serif" font-size="28" font-weight="700">Tímpano</text>
+    <text x="176" y="450" fill="#5D6A7C" font-family="Verdana, sans-serif" font-size="22">vibra como una membrana forzada</text>
+  </g>
+
+  <g>
+    <circle cx="124" cy="534" r="28" fill="#215399"/>
+    <text x="114" y="544" fill="white" font-family="Verdana, sans-serif" font-size="28" font-weight="700">3</text>
+    <text x="176" y="542" fill="#23344A" font-family="Verdana, sans-serif" font-size="28" font-weight="700">Huesecillos</text>
+    <text x="176" y="578" fill="#5D6A7C" font-family="Verdana, sans-serif" font-size="22">transmiten y mejoran el acoplamiento</text>
+  </g>
+
+  <path d="M452 318H584" stroke="#E19E6F" stroke-width="28" stroke-linecap="round"/>
+  <path d="M582 286L620 366" stroke="#D65D52" stroke-width="12"/>
+  <path d="M620 286L670 382" stroke="#D65D52" stroke-width="12"/>
+  <path d="M670 306L716 372" stroke="#D65D52" stroke-width="12"/>
+  <circle cx="618" cy="286" r="19" fill="#FFF0E3" stroke="#D65D52" stroke-width="8"/>
+  <circle cx="670" cy="382" r="18" fill="#FFF0E3" stroke="#D65D52" stroke-width="8"/>
+  <circle cx="716" cy="306" r="18" fill="#FFF0E3" stroke="#D65D52" stroke-width="8"/>
+
+  <path d="M760 318C808 316 846 342 856 384C866 426 846 466 806 490" stroke="#23344A" stroke-width="8" stroke-dasharray="14 12"/>
+  <path d="M842 334C892 340 922 378 922 420C922 476 880 522 820 526C760 530 708 490 700 434" fill="#FFDDBB" stroke="#C96A51" stroke-width="16"/>
+  <path d="M876 380C852 396 842 420 848 448C854 480 880 508 910 518" stroke="#2E7DB5" stroke-width="20" stroke-linecap="round"/>
+  <path d="M890 396C874 408 868 426 872 446C876 468 894 486 916 492" stroke="#9FD0FF" stroke-width="10" stroke-linecap="round"/>
+
+  <path d="M236 268C300 260 352 280 394 324" stroke="#0F766E" stroke-width="8" stroke-linecap="round"/>
+  <path d="M236 298C304 292 356 310 398 354" stroke="#0F766E" stroke-width="6" stroke-linecap="round"/>
+  <path d="M236 328C306 324 356 340 400 384" stroke="#0F766E" stroke-width="4" stroke-linecap="round"/>
+
+  <g fill="#23344A" font-family="Verdana, sans-serif" font-size="22" font-weight="700">
+    <text x="438" y="280">Conducto</text>
+    <text x="582" y="254">Martillo</text>
+    <text x="632" y="430">Yunque</text>
+    <text x="716" y="278">Estribo</text>
+    <text x="930" y="388">Cóclea</text>
+    <text x="922" y="546">Nervio</text>
+  </g>
+
+  <g fill="#5D6A7C" font-family="Verdana, sans-serif" font-size="21">
+    <text x="430" y="560">1. El aire transporta la perturbación hasta el tímpano.</text>
+    <text x="430" y="598">2. La membrana la convierte en vibración mecánica.</text>
+    <text x="430" y="636">3. Los huesecillos transfieren energía a la ventana oval.</text>
+    <text x="430" y="674">4. El fluido coclear oscila y las células ciliadas responden.</text>
+  </g>
+</svg>
